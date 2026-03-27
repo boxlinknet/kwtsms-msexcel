@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.*
+*.log
+.claude/
+CLAUDE.md
+docs/
+.worktrees/
+.superpowers/
+.playwright*
+test/
+tests/
+docker/
+.idea/
+.vscode/
