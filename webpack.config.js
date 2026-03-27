@@ -73,6 +73,14 @@ module.exports = async (env, options) => {
               }
             },
           },
+          {
+            from: "support.html",
+            to: "support.html",
+          },
+          {
+            from: "privacy.html",
+            to: "privacy.html",
+          },
         ],
       }),
       new HtmlWebpackPlugin({

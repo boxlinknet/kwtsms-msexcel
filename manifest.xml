@@ -2,15 +2,15 @@
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
   <Id>3652b28e-a4ab-4d08-9a7c-5d6df17bcfcc</Id>
   <Version>1.0.0.0</Version>
-  <ProviderName>Contoso</ProviderName>
+  <ProviderName>kwtSMS</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="kwtSMS"/>
-  <Description DefaultValue="A template to get started."/>
+  <DisplayName DefaultValue="kwtSMS for Excel"/>
+  <Description DefaultValue="Send bulk SMS directly from your Excel spreadsheets using the kwtSMS gateway. Map phone number and message columns, validate numbers for 80+ countries, and track delivery in a dedicated log sheet."/>
   <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-64.png"/>
-  <SupportUrl DefaultValue="https://www.contoso.com/help"/>
+  <SupportUrl DefaultValue="https://localhost:3000/support.html"/>
   <AppDomains>
-    <AppDomain>https://www.contoso.com</AppDomain>
+    <AppDomain>https://www.kwtsms.com</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Workbook"/>
@@ -72,13 +72,13 @@
         <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html"/>
       </bt:Urls>
       <bt:ShortStrings>
-        <bt:String id="GetStarted.Title" DefaultValue="Get started with your sample add-in!"/>
-        <bt:String id="CommandsGroup.Label" DefaultValue="Commands Group"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Show Task Pane"/>
+        <bt:String id="GetStarted.Title" DefaultValue="Get started with kwtSMS for Excel!"/>
+        <bt:String id="CommandsGroup.Label" DefaultValue="kwtSMS"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="kwtSMS"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="GetStarted.Description" DefaultValue="Your sample add-in loaded successfully. Go to the HOME tab and click the 'Show Task Pane' button to get started."/>
-        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Click to Show a Taskpane"/>
+        <bt:String id="GetStarted.Description" DefaultValue="kwtSMS for Excel loaded successfully. Go to the HOME tab and click the 'kwtSMS' button to get started."/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open the kwtSMS panel to send bulk SMS from this workbook"/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
