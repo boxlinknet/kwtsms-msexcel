@@ -25,15 +25,15 @@ async function apiCall<T>(endpoint: string, body: Record<string, any>): Promise<
     body: JSON.stringify(body),
   });
 
-  if (!response.ok) {
-    throw new Error("HTTP " + response.status + ": " + response.statusText);
-  }
-
   const data = await response.json();
 
   if (data.result === "ERROR") {
     const err = data as ApiErrorResponse;
     throw new Error(err.code + ": " + err.description);
+  }
+
+  if (!response.ok) {
+    throw new Error("HTTP " + response.status + ": " + response.statusText);
   }
 
   return data as T;
@@ -50,7 +50,7 @@ export async function fetchSenderIds(username: string, password: string): Promis
 
 export async function fetchCoverage(username: string, password: string): Promise<string[]> {
   const data = await apiCall<CoverageResponse>("/coverage/", { username, password });
-  return data.coverage || [];
+  return (data as any).prefixes || data.coverage || [];
 }
 
 export async function send(
