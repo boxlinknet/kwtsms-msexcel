@@ -1,55 +1,151 @@
-<!-- Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. -->
-<!-- This file shows how to design a first-run page that provides a welcome screen to the user about the features of the add-in. -->
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Contoso Task Pane Add-in</title>
+    <title>kwtSMS Excel Add-in</title>
 
     <!-- Office JavaScript API -->
     <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
 
-    <!-- For more information on Fluent UI, visit https://developer.microsoft.com/fluentui#/. -->
-    <link rel="stylesheet" href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css"/>
-
-    <!-- Template styles -->
     <link href="taskpane.css" rel="stylesheet" type="text/css" />
 </head>
 
-<body class="ms-font-m ms-welcome ms-Fabric">
-    <header class="ms-welcome__header ms-bgColor-neutralLighter">
-        <img width="90" height="90" src="../../assets/logo-filled.png" alt="Contoso" title="Contoso" />
-        <h1 class="ms-font-su">Welcome</h1>
-    </header>
-    <section id="sideload-msg" class="ms-welcome__main">
-        <h2 class="ms-font-xl">Please <a target="_blank" href="https://learn.microsoft.com/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing">sideload</a> your add-in to see app body.</h2>
-    </section>
-    <main id="app-body" class="ms-welcome__main" style="display: none;">
-        <h2 class="ms-font-xl"> Discover what Office Add-ins can do for you today! </h2>
-        <ul class="ms-List ms-welcome__features">
-            <li class="ms-ListItem">
-                <i class="ms-Icon ms-Icon--Ribbon ms-font-xl"></i>
-                <span class="ms-font-m">Achieve more with Office integration</span>
-            </li>
-            <li class="ms-ListItem">
-                <i class="ms-Icon ms-Icon--Unlock ms-font-xl"></i>
-                <span class="ms-font-m">Unlock features and functionality</span>
-            </li>
-            <li class="ms-ListItem">
-                <i class="ms-Icon ms-Icon--Design ms-font-xl"></i>
-                <span class="ms-font-m">Create and visualize like a pro</span>
-            </li>
-        </ul>
-        <p class="ms-font-l">Modify the source files, then click <b>Run</b>.</p>
-        <div role="button" id="run" class="ms-welcome__action ms-Button ms-Button--hero ms-font-xl">
-            <span class="ms-Button-label">Run</span>
+<body>
+
+    <!-- Login Section (visible by default) -->
+    <section id="login-section">
+        <div class="login-logo">
+            <img src="../../assets/icon-64.png" alt="kwtSMS" width="64" height="64" />
         </div>
-        <p><label id="item-subject"></label></p>
-    </main>
+        <h1 class="login-heading">Login to kwtSMS</h1>
+
+        <div class="form-group">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" id="username" class="form-input" placeholder="Enter username" autocomplete="username" />
+        </div>
+
+        <div class="form-group">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" class="form-input" placeholder="Enter password" autocomplete="current-password" />
+        </div>
+
+        <button id="login-btn" class="btn btn-primary btn-block">Login</button>
+
+        <div id="login-error" class="error-msg" style="display:none;"></div>
+    </section>
+
+    <!-- Main Section (hidden by default) -->
+    <section id="main-section" style="display:none;">
+
+        <!-- Status bar -->
+        <div class="status-bar">
+            <div class="status-bar-left">
+                <img src="../../assets/icon-64.png" alt="kwtSMS" class="status-logo" />
+                <span class="balance-label">Balance:</span>
+                <span id="balance-value" class="balance-value">--</span>
+            </div>
+            <button id="logout-btn" class="btn btn-ghost btn-sm">Logout</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Sender ID + Test mode -->
+        <div class="form-row">
+            <div class="form-group flex-1">
+                <label for="sender-id-select" class="form-label">Sender ID</label>
+                <select id="sender-id-select" class="form-select">
+                    <option value="">-- Select --</option>
+                </select>
+            </div>
+            <div class="form-group test-mode-group">
+                <label class="form-label">Test Mode</label>
+                <label class="toggle-label">
+                    <input type="checkbox" id="test-mode-toggle" class="toggle-input" />
+                    <span class="toggle-track"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Column selectors -->
+        <div class="form-row">
+            <div class="form-group flex-1">
+                <label for="phone-column" class="form-label">Phone Column</label>
+                <select id="phone-column" class="form-select">
+                    <option value="">-- Select --</option>
+                </select>
+            </div>
+            <div class="form-group align-end">
+                <button id="refresh-columns-btn" class="btn btn-outline btn-sm" title="Refresh columns">&#8635;</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="message-column" class="form-label">Message Column</label>
+            <select id="message-column" class="form-select">
+                <option value="">-- Select --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="country-code" class="form-label">Default Country Code</label>
+            <select id="country-code" class="form-select">
+                <option value="965">+965 Kuwait</option>
+                <option value="966">+966 Saudi Arabia</option>
+                <option value="971">+971 UAE</option>
+                <option value="973">+973 Bahrain</option>
+                <option value="974">+974 Qatar</option>
+                <option value="968">+968 Oman</option>
+                <option value="962">+962 Jordan</option>
+                <option value="20">+20 Egypt</option>
+                <option value="1">+1 USA/Canada</option>
+                <option value="44">+44 UK</option>
+            </select>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Message template -->
+        <div class="form-group">
+            <label for="message-template" class="form-label">Message Template</label>
+            <textarea id="message-template" class="form-textarea" rows="4" placeholder="Type your message here. Leave blank to use Message Column."></textarea>
+        </div>
+
+        <!-- Send preview -->
+        <div id="send-preview" class="preview-box" style="display:none;">
+            <div class="preview-row">
+                <span class="preview-label">Valid:</span>
+                <span id="preview-valid" class="preview-value preview-valid">0</span>
+            </div>
+            <div class="preview-row">
+                <span class="preview-label">Duplicates:</span>
+                <span id="preview-duplicates" class="preview-value preview-warn">0</span>
+            </div>
+            <div class="preview-row">
+                <span class="preview-label">Skipped:</span>
+                <span id="preview-skipped" class="preview-value preview-warn">0</span>
+            </div>
+        </div>
+
+        <!-- Send button -->
+        <button id="send-btn" class="btn btn-primary btn-block">Send SMS</button>
+
+        <!-- Result / error -->
+        <div id="send-result" class="result-msg" style="display:none;"></div>
+        <div id="send-error" class="error-msg" style="display:none;"></div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <a href="https://kwtsms.com" target="_blank" class="footer-link">kwtsms.com</a>
+            <span id="version-display" class="version-text"></span>
+        </footer>
+
+    </section>
+
 </body>
 
 </html>
