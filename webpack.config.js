@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 
-const devCerts = require("office-addin-dev-certs");
+const fs = require("fs");
+const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
@@ -8,6 +9,15 @@ const urlDev = "https://localhost:3000/";
 const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
 
 async function getHttpsOptions() {
+  const certsDir = path.join(require("os").homedir(), ".office-addin-dev-certs");
+  if (fs.existsSync(path.join(certsDir, "localhost.key"))) {
+    return {
+      ca: fs.readFileSync(path.join(certsDir, "ca.crt")),
+      key: fs.readFileSync(path.join(certsDir, "localhost.key")),
+      cert: fs.readFileSync(path.join(certsDir, "localhost.crt")),
+    };
+  }
+  const devCerts = require("office-addin-dev-certs");
   const httpsOptions = await devCerts.getHttpsServerOptions();
   return { ca: httpsOptions.ca, key: httpsOptions.key, cert: httpsOptions.cert };
 }
