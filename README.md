@@ -8,6 +8,10 @@
 
 Send bulk SMS directly from your Excel spreadsheets using the [kwtSMS](https://www.kwtsms.com) SMS gateway.
 
+## About kwtSMS
+
+[kwtSMS](https://www.kwtsms.com) is a Kuwait-based SMS gateway providing reliable messaging to 80+ countries. It supports bulk campaigns, transactional notifications, and OTP verification. kwtSMS is used by businesses across the GCC and MENA region.
+
 ## Features
 
 - **Bulk SMS from spreadsheets** - Map phone number and message columns, send to all rows
@@ -15,7 +19,7 @@ Send bulk SMS directly from your Excel spreadsheets using the [kwtSMS](https://w
 - **Message cleaning** - Strips emojis, hidden Unicode characters, and HTML before sending
 - **Delivery logging** - Every send logged to a dedicated `kwtsms_logs` worksheet
 - **Column mapping** - Pick which columns contain phone numbers and messages
-- **Test mode** - Send with `test=1` to verify without actual delivery
+- **Test mode** - Safely test your SMS workflow without delivering messages
 - **Country coverage check** - Skips numbers outside your account's coverage area
 - **Duplicate removal** - Automatic deduplication before sending
 
@@ -64,10 +68,10 @@ KWTSMS_USERNAME=xxx KWTSMS_PASSWORD=xxx npm test            # Include API tests
 
 ## How It Works
 
-1. **Login** - Enter your kwtSMS API username and password. The add-in verifies via the `/balance/` endpoint.
+1. **Login** - Enter your kwtSMS username and password. The add-in verifies your credentials and loads your account settings.
 2. **Map columns** - Select which spreadsheet column contains phone numbers, and optionally which contains messages.
-3. **Preview** - See how many valid numbers, duplicates removed, and numbers skipped (no coverage).
-4. **Send** - Messages are sent in batches of 200 with automatic rate limiting. Results logged to `kwtsms_logs` sheet.
+3. **Preview** - See how many valid numbers were found, duplicates removed, and numbers skipped.
+4. **Send** - Messages are sent automatically in batches. Results are logged to a dedicated worksheet.
 
 ## Project Structure
 
@@ -115,5 +119,4 @@ src/
 
 ## Support
 
-- Email: [support@kwtsms.com](mailto:support@kwtsms.com)
 - Website: [kwtsms.com](https://www.kwtsms.com)
