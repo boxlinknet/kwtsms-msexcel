@@ -9,6 +9,8 @@ docs/
 .worktrees/
 .superpowers/
 .playwright*
+test/
+tests/
 docker/
 .idea/
 .vscode/
