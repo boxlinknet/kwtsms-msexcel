@@ -15,10 +15,11 @@ Send bulk SMS directly from your Excel spreadsheets using the [kwtSMS](https://w
 ## Features
 
 - **Bulk SMS from spreadsheets** - Map phone number and message columns, send to all rows
-- **80+ country validation** - Exact phone number length and format checking per country
-- **Message cleaning** - Strips emojis, hidden Unicode characters, and HTML before sending
-- **Delivery logging** - Every send logged to a dedicated `kwtsms_logs` worksheet
+- **Message templates** - Write a single message for all recipients, or use a different message per row from a column
 - **Column mapping** - Pick which columns contain phone numbers and messages
+- **80+ country validation** - Phone number length and format checking per country
+- **Message cleaning** - Strips emojis, hidden characters, and HTML before sending
+- **Delivery logging** - Every send logged to a dedicated worksheet
 - **Test mode** - Safely test your SMS workflow without delivering messages
 - **Country coverage check** - Skips numbers outside your account's coverage area
 - **Duplicate removal** - Automatic deduplication before sending
