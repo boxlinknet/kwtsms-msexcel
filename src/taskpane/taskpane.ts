@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.3";
+const APP_VERSION = "1.0.4";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -541,7 +541,7 @@ async function handleSend(): Promise<void> {
       const normalized = normalize(raw, defaultCountry);
       if (!normalized) {
         logEntries.push(
-          makeLogEntry(timestamp, raw, "", senderId, "SKIPPED_NO_COVERAGE", "Invalid phone number", "", 0)
+          makeLogEntry(timestamp, raw, "", senderId, "FAILED", "Invalid phone number", "", 0)
         );
         continue;
       }
@@ -549,7 +549,7 @@ async function handleSend(): Promise<void> {
       const verifyResult = verify(normalized);
       if (!verifyResult.valid) {
         logEntries.push(
-          makeLogEntry(timestamp, normalized, "", senderId, "SKIPPED_NO_COVERAGE", "Failed phone validation", "", 0)
+          makeLogEntry(timestamp, normalized, "", senderId, "FAILED", "Failed phone validation", "", 0)
         );
         continue;
       }
@@ -571,7 +571,7 @@ async function handleSend(): Promise<void> {
 
       if (!msg) {
         logEntries.push(
-          makeLogEntry(timestamp, normalized, "", senderId, "SKIPPED_NO_COVERAGE", getString("emptyMessage"), "", 0)
+          makeLogEntry(timestamp, normalized, "", senderId, "FAILED", getString("emptyMessage"), "", 0)
         );
         continue;
       }
