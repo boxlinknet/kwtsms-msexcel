@@ -583,7 +583,6 @@ async function handlePreviewUpdate(): Promise<void> {
     // Only deduplicate when using a plain template with no placeholders and no message column.
     // When using message column or {ColumnName} placeholders, each row may have a unique message.
     const useMessageColumn = messageColumnSelect.value !== "";
-    const usesPlaceholders = templateHasPlaceholders(messageTemplate.value);
     let validCount: number;
     let dupCount: number;
 
