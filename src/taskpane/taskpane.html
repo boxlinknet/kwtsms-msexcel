@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>kwtSMS Excel Add-in</title>
+    <title>kwtSMS</title>
 
     <!-- Office JavaScript API -->
     <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
@@ -42,14 +42,16 @@
     <!-- Main Section (hidden by default) -->
     <section id="main-section" style="display:none;">
 
-        <!-- Status bar -->
-        <div class="status-bar">
-            <div class="status-bar-left">
-                <img src="../../assets/kwtsms-logo.png" alt="kwtSMS" class="status-logo" />
-                <span class="balance-label">Balance:</span>
-                <span id="balance-value" class="balance-value">--</span>
-            </div>
+        <!-- Logo + logout -->
+        <div class="main-header">
+            <img src="../../assets/kwtsms-logo.png" alt="kwtSMS" style="max-width: 150px; height: auto;" />
             <button id="logout-btn" class="btn btn-ghost btn-sm">Logout</button>
+        </div>
+
+        <!-- Balance -->
+        <div class="balance-bar">
+            <span class="balance-label">Balance:</span>
+            <span id="balance-value" class="balance-value">--</span>
         </div>
 
         <div class="divider"></div>
@@ -58,9 +60,7 @@
         <div class="form-row">
             <div class="form-group flex-1">
                 <label for="sender-id-select" class="form-label">Sender ID</label>
-                <select id="sender-id-select" class="form-select">
-                    <option value="">-- Select --</option>
-                </select>
+                <select id="sender-id-select" class="form-select"></select>
             </div>
             <div class="form-group test-mode-group">
                 <label class="form-label">Test Mode</label>
@@ -69,6 +69,12 @@
                     <span class="toggle-track"></span>
                 </label>
             </div>
+        </div>
+
+        <!-- Country code (populated from /coverage/ API) -->
+        <div class="form-group">
+            <label for="country-code" class="form-label">Country Code</label>
+            <select id="country-code" class="form-select"></select>
         </div>
 
         <div class="divider"></div>
@@ -90,22 +96,6 @@
             <label for="message-column" class="form-label">Message Column</label>
             <select id="message-column" class="form-select">
                 <option value="">-- Select --</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="country-code" class="form-label">Default Country Code</label>
-            <select id="country-code" class="form-select">
-                <option value="965">+965 Kuwait</option>
-                <option value="966">+966 Saudi Arabia</option>
-                <option value="971">+971 UAE</option>
-                <option value="973">+973 Bahrain</option>
-                <option value="974">+974 Qatar</option>
-                <option value="968">+968 Oman</option>
-                <option value="962">+962 Jordan</option>
-                <option value="20">+20 Egypt</option>
-                <option value="1">+1 USA/Canada</option>
-                <option value="44">+44 UK</option>
             </select>
         </div>
 

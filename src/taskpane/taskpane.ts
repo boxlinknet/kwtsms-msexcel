@@ -114,6 +114,7 @@ Office.onReady((info) => {
     const cached = settings.getCachedData();
     if (cached) {
       populateSenderIds(cached.senderIds);
+      populateCountryCodes(cached.coverage);
       updateBalanceDisplay(cached.balance);
       restoreSettingsToUI();
       showMainSection();
@@ -152,6 +153,7 @@ async function silentReAuth(username: string, password: string): Promise<void> {
     ]);
     await settings.saveCachedData(balanceResp.available, senderIds, coverage);
     populateSenderIds(senderIds);
+    populateCountryCodes(coverage);
     updateBalanceDisplay(balanceResp.available);
     restoreSettingsToUI();
     showMainSection();
@@ -206,6 +208,7 @@ async function handleLogin(): Promise<void> {
     await settings.saveCachedData(balanceResp.available, senderIds, coverage);
 
     populateSenderIds(senderIds);
+    populateCountryCodes(coverage);
     updateBalanceDisplay(balanceResp.available);
     restoreSettingsToUI();
     showMainSection();
@@ -290,6 +293,36 @@ function populateSenderIds(senderIds: string[]): void {
     senderIdSelect.value = savedSender;
   } else {
     senderIdSelect.value = senderIds[0];
+  }
+}
+
+function populateCountryCodes(coverage: string[]): void {
+  clearSelectOptions(countryCodeSelect);
+
+  if (coverage.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "965";
+    opt.textContent = "+965";
+    countryCodeSelect.appendChild(opt);
+    return;
+  }
+
+  const sorted = [...coverage].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  sorted.forEach((prefix) => {
+    const opt = document.createElement("option");
+    opt.value = prefix;
+    opt.textContent = "+" + prefix;
+    countryCodeSelect.appendChild(opt);
+  });
+
+  // Restore previously saved country code
+  const savedCountry = settings.getDefaultCountryCode();
+  if (savedCountry && coverage.includes(savedCountry)) {
+    countryCodeSelect.value = savedCountry;
+  } else if (coverage.includes("965")) {
+    countryCodeSelect.value = "965";
+  } else {
+    countryCodeSelect.value = sorted[0];
   }
 }
 
