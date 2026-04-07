@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.7";
+const APP_VERSION = "1.0.8";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -44,7 +44,12 @@ let sendPreview: HTMLElement;
 let previewValid: HTMLElement;
 let previewDuplicates: HTMLElement;
 let previewSkipped: HTMLElement;
+let previewEmptyMsgs: HTMLElement;
 let sendBtn: HTMLButtonElement;
+let sendProgress: HTMLElement;
+let progressLabel: HTMLElement;
+let progressCount: HTMLElement;
+let progressBarFill: HTMLElement;
 let sendResult: HTMLElement;
 let sendError: HTMLElement;
 let versionDisplay: HTMLElement;
@@ -78,7 +83,12 @@ Office.onReady((info) => {
   previewValid = document.getElementById("preview-valid") as HTMLElement;
   previewDuplicates = document.getElementById("preview-duplicates") as HTMLElement;
   previewSkipped = document.getElementById("preview-skipped") as HTMLElement;
+  previewEmptyMsgs = document.getElementById("preview-empty-msgs") as HTMLElement;
   sendBtn = document.getElementById("send-btn") as HTMLButtonElement;
+  sendProgress = document.getElementById("send-progress") as HTMLElement;
+  progressLabel = document.getElementById("progress-label") as HTMLElement;
+  progressCount = document.getElementById("progress-count") as HTMLElement;
+  progressBarFill = document.getElementById("progress-bar-fill") as HTMLElement;
   sendResult = document.getElementById("send-result") as HTMLElement;
   sendError = document.getElementById("send-error") as HTMLElement;
   versionDisplay = document.getElementById("version-display") as HTMLElement;
@@ -521,11 +531,28 @@ async function handlePreviewUpdate(): Promise<void> {
     const defaultCountry = countryCodeSelect.value || settings.getDefaultCountryCode();
     const cached = settings.getCachedData();
     const coverage = cached ? cached.coverage : [];
+    const templateText = messageTemplate.value;
+
+    // Read message column if selected
+    const messageColIdx = messageColumnSelect.value;
+    let rawMessages: string[] = [];
+    if (messageColIdx !== "") {
+      rawMessages = await readColumnData(Number(messageColIdx));
+    }
+
+    // Read sheet data for placeholder substitution
+    let sheetData: SheetData | null = null;
+    const usesPlaceholders = templateHasPlaceholders(templateText);
+    if (usesPlaceholders) {
+      sheetData = await readSheetData();
+    }
 
     let skippedCount = 0;
+    let emptyMsgCount = 0;
     const normalizedPhones: string[] = [];
 
-    for (const raw of rawPhones) {
+    for (let i = 0; i < rawPhones.length; i++) {
+      const raw = rawPhones[i];
       if (!raw) continue;
       const normalized = normalize(raw, defaultCountry);
       if (!normalized) continue;
@@ -535,6 +562,21 @@ async function handlePreviewUpdate(): Promise<void> {
         skippedCount++;
         continue;
       }
+
+      // Check message for this row
+      let msg = templateText;
+      if (messageColIdx !== "" && i < rawMessages.length) {
+        msg = rawMessages[i] || templateText;
+      }
+      if (usesPlaceholders && sheetData && i < sheetData.rows.length) {
+        msg = substituteTemplate(msg, sheetData.headers, sheetData.rows[i]);
+      }
+      msg = cleanMessage(msg);
+      if (!msg) {
+        emptyMsgCount++;
+        continue;
+      }
+
       normalizedPhones.push(normalized);
     }
 
@@ -557,6 +599,7 @@ async function handlePreviewUpdate(): Promise<void> {
     previewValid.textContent = String(validCount);
     previewDuplicates.textContent = String(dupCount);
     previewSkipped.textContent = String(skippedCount);
+    previewEmptyMsgs.textContent = String(emptyMsgCount);
     sendPreview.style.display = "";
 
     // Balance check for enabling send button
@@ -723,10 +766,18 @@ async function handleSend(): Promise<void> {
     // 5. Ensure log sheet exists
     await ensureLogSheet();
 
-    // 6. Batch sending
+    // 6. Batch sending with progress bar
     let sentCount = 0;
     let failedCount = 0;
     let totalPointsCharged = 0;
+    let processedCount = 0;
+    const totalToSend = deduped.length;
+
+    // Show progress bar
+    sendProgress.style.display = "";
+    progressLabel.textContent = "Sending...";
+    progressCount.textContent = "0 / " + totalToSend;
+    progressBarFill.style.width = "0%";
 
     for (let batchStart = 0; batchStart < deduped.length; batchStart += BATCH_SIZE) {
       const batchItems = deduped.slice(batchStart, batchStart + BATCH_SIZE);
@@ -770,6 +821,12 @@ async function handleSend(): Promise<void> {
           });
           failedCount += phones.length;
         }
+
+        // Update progress bar
+        processedCount += phones.length;
+        const pct = Math.round((processedCount / totalToSend) * 100);
+        progressBarFill.style.width = pct + "%";
+        progressCount.textContent = processedCount + " / " + totalToSend;
       }
 
       // Delay between batches (except after the last batch)
@@ -777,6 +834,10 @@ async function handleSend(): Promise<void> {
         await delay(BATCH_DELAY_MS);
       }
     }
+
+    // Hide progress bar
+    progressLabel.textContent = "Done";
+    progressBarFill.style.width = "100%";
 
     // 7. Log all entries
     if (logEntries.length > 0) {

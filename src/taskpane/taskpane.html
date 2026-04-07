@@ -75,7 +75,7 @@
 
         <!-- Country code (populated from /coverage/ API) -->
         <div class="form-group">
-            <label for="country-code" class="form-label">Country Code</label>
+            <label for="country-code" class="form-label">Default Country Code</label>
             <select id="country-code" class="form-select"></select>
         </div>
 
@@ -106,7 +106,7 @@
         <!-- Message template -->
         <div class="form-group">
             <label for="message-template" class="form-label">Message Template</label>
-            <textarea id="message-template" class="form-textarea" rows="4" placeholder="Type your message here. Use {ColumnName} for substitution. Example: Hello {Name}, your order #{OrderID} is ready."></textarea>
+            <textarea id="message-template" class="form-textarea" rows="4" placeholder="Hello {Name}, your order #{OrderID} is ready for pickup at {Address}. Use {ColumnName} or {A} for column substitution."></textarea>
         </div>
 
         <!-- Send preview -->
@@ -123,10 +123,25 @@
                 <span class="preview-label">Skipped:</span>
                 <span id="preview-skipped" class="preview-value preview-warn">0</span>
             </div>
+            <div class="preview-row">
+                <span class="preview-label">Empty messages:</span>
+                <span id="preview-empty-msgs" class="preview-value preview-warn">0</span>
+            </div>
         </div>
 
         <!-- Send button -->
         <button id="send-btn" class="btn btn-primary btn-block">Send SMS</button>
+
+        <!-- Progress bar (hidden until sending) -->
+        <div id="send-progress" class="progress-container" style="display:none;">
+            <div class="progress-text">
+                <span id="progress-label">Sending...</span>
+                <span id="progress-count">0 / 0</span>
+            </div>
+            <div class="progress-bar-track">
+                <div id="progress-bar-fill" class="progress-bar-fill" style="width:0%"></div>
+            </div>
+        </div>
 
         <!-- Result / error -->
         <div id="send-result" class="result-msg" style="display:none;"></div>
