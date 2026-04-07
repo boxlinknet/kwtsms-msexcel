@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.6";
+const APP_VERSION = "1.0.7";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -84,7 +84,11 @@ Office.onReady((info) => {
   versionDisplay = document.getElementById("version-display") as HTMLElement;
 
   // Bind events
-  loginBtn.addEventListener("click", handleLogin);
+  const loginForm = document.getElementById("login-form") as HTMLFormElement;
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    handleLogin();
+  });
   logoutBtn.addEventListener("click", handleLogout);
   refreshColumnsBtn.addEventListener("click", () => populateColumnDropdowns());
   phoneColumnSelect.addEventListener("change", handlePreviewUpdate);
@@ -409,13 +413,94 @@ async function readColumnData(columnIndex: number): Promise<string[]> {
     }
 
     const results: string[] = [];
-    // Start from row index 1 (skip header row at index 0)
     for (let r = 1; r < usedRange.rowCount; r++) {
       const cell = usedRange.values[r][columnIndex];
       results.push(cell !== null && cell !== undefined ? String(cell) : "");
     }
     return results;
   });
+}
+
+// ---------------------------------------------------------------------------
+// Template substitution: replaces {ColumnName} with row values
+// ---------------------------------------------------------------------------
+
+interface SheetData {
+  headers: string[];
+  rows: string[][];
+}
+
+async function readSheetData(): Promise<SheetData> {
+  return Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getActiveWorksheet();
+    const usedRange = sheet.getUsedRange();
+    usedRange.load("values,rowCount,columnCount");
+    await context.sync();
+
+    if (!usedRange || usedRange.rowCount <= 1) {
+      return { headers: [], rows: [] };
+    }
+
+    const headers: string[] = [];
+    for (let c = 0; c < usedRange.columnCount; c++) {
+      const h = usedRange.values[0][c];
+      headers.push(h !== null && h !== undefined ? String(h) : "");
+    }
+
+    const rows: string[][] = [];
+    for (let r = 1; r < usedRange.rowCount; r++) {
+      const row: string[] = [];
+      for (let c = 0; c < usedRange.columnCount; c++) {
+        const cell = usedRange.values[r][c];
+        row.push(cell !== null && cell !== undefined ? String(cell) : "");
+      }
+      rows.push(row);
+    }
+
+    return { headers, rows };
+  });
+}
+
+function columnIndexToLetter(index: number): string {
+  let letter = "";
+  let n = index;
+  while (n >= 0) {
+    letter = String.fromCharCode((n % 26) + 65) + letter;
+    n = Math.floor(n / 26) - 1;
+  }
+  return letter;
+}
+
+function substituteTemplate(template: string, headers: string[], rowData: string[]): string {
+  let result = template;
+
+  // Replace all {placeholder} tokens (case-insensitive match against column names and letters)
+  result = result.replace(/\{([^}]+)\}/g, (_match, key: string) => {
+    const keyLower = key.trim().toLowerCase();
+
+    // Try matching by column header name (case-insensitive)
+    for (let c = 0; c < headers.length; c++) {
+      if (headers[c].toLowerCase() === keyLower) {
+        return rowData[c] || "";
+      }
+    }
+
+    // Try matching by column letter (A, B, C...)
+    for (let c = 0; c < headers.length; c++) {
+      if (columnIndexToLetter(c).toLowerCase() === keyLower) {
+        return rowData[c] || "";
+      }
+    }
+
+    // No match: leave placeholder as-is
+    return _match;
+  });
+
+  return result;
+}
+
+function templateHasPlaceholders(template: string): boolean {
+  return /\{[^}]+\}/.test(template);
 }
 
 // ---------------------------------------------------------------------------
@@ -453,13 +538,14 @@ async function handlePreviewUpdate(): Promise<void> {
       normalizedPhones.push(normalized);
     }
 
-    // Only deduplicate when using template (same message for all).
-    // When using a message column, same phone with different messages should send separately.
+    // Only deduplicate when using a plain template with no placeholders and no message column.
+    // When using message column or {ColumnName} placeholders, each row may have a unique message.
     const useMessageColumn = messageColumnSelect.value !== "";
+    const usesPlaceholders = templateHasPlaceholders(messageTemplate.value);
     let validCount: number;
     let dupCount: number;
 
-    if (useMessageColumn) {
+    if (useMessageColumn || usesPlaceholders) {
       validCount = normalizedPhones.length;
       dupCount = 0;
     } else {
@@ -527,6 +613,13 @@ async function handleSend(): Promise<void> {
       rawMessages = await readColumnData(Number(messageColIndex));
     }
 
+    // Read full sheet data for template substitution if template has {ColumnName} placeholders
+    let sheetData: SheetData | null = null;
+    const usesPlaceholders = templateHasPlaceholders(templateText);
+    if (usesPlaceholders) {
+      sheetData = await readSheetData();
+    }
+
     // 2. Validation pipeline
     const timestamp = new Date().toISOString();
     const logEntries: LogEntry[] = [];
@@ -542,6 +635,10 @@ async function handleSend(): Promise<void> {
       let rawMsg = templateText;
       if (messageColIndex !== "" && i < rawMessages.length) {
         rawMsg = rawMessages[i] || templateText;
+      }
+      // Apply {ColumnName} substitution if template has placeholders
+      if (usesPlaceholders && sheetData && i < sheetData.rows.length) {
+        rawMsg = substituteTemplate(rawMsg, sheetData.headers, sheetData.rows[i]);
       }
 
       const normalized = normalize(raw, defaultCountry);
