@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.10";
+const APP_VERSION = "1.0.11";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -810,7 +810,7 @@ async function handleSend(): Promise<void> {
           );
 
           logEntries.push(
-            makeLogEntry(timestamp, item.phone, item.rawMessage, senderId, "SENT", "", resp["msg-id"], resp["points-charged"])
+            makeLogEntry(timestamp, item.phone, item.message, senderId, "SENT", "", resp["msg-id"], resp["points-charged"])
           );
 
           sentCount += 1;
@@ -822,7 +822,7 @@ async function handleSend(): Promise<void> {
         } catch (err: any) {
           const errMsg = err.message || "Send failed";
           logEntries.push(
-            makeLogEntry(timestamp, item.phone, item.rawMessage, senderId, "FAILED", errMsg, "", 0)
+            makeLogEntry(timestamp, item.phone, item.message, senderId, "FAILED", errMsg, "", 0)
           );
           failedCount += 1;
         }
