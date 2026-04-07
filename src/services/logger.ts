@@ -80,6 +80,10 @@ export async function logBatch(entries: LogEntry[]): Promise<void> {
     ]);
     const newRange = sheet.getRangeByIndexes(nextRow, 0, entries.length, HEADERS.length);
     newRange.values = rows;
+
+    // Auto-fit all columns so Arabic and long text is visible
+    const fullRange = sheet.getUsedRange();
+    fullRange.format.autofitColumns();
     await context.sync();
   });
 }

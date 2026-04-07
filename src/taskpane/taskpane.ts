@@ -566,7 +566,7 @@ async function handlePreviewUpdate(): Promise<void> {
     const totalRows = rawPhones.length;
 
     for (let i = 0; i < rawPhones.length; i++) {
-      const raw = rawPhones[i];
+      const raw = rawPhones[i].trim();
       if (!raw) { invalidCount++; continue; }
       const normalized = normalize(raw, defaultCountry);
       if (!normalized) { invalidCount++; continue; }
@@ -578,9 +578,9 @@ async function handlePreviewUpdate(): Promise<void> {
       }
 
       // Check message for this row
-      let msg = templateText;
+      let msg = templateText.trim();
       if (messageColIdx !== "" && i < rawMessages.length) {
-        msg = rawMessages[i] || templateText;
+        msg = (rawMessages[i] || templateText).trim();
       }
       if (usesPlaceholders && sheetData && i < sheetData.rows.length) {
         msg = substituteTemplate(msg, sheetData.headers, sheetData.rows[i]);
@@ -687,13 +687,13 @@ async function handleSend(): Promise<void> {
     const rawMsgList: string[] = [];
 
     for (let i = 0; i < rawPhones.length; i++) {
-      const raw = rawPhones[i];
+      const raw = rawPhones[i].trim();
       if (!raw) continue;
 
       // Get the raw message for this row (for logging even on failure)
-      let rawMsg = templateText;
+      let rawMsg = templateText.trim();
       if (messageColIndex !== "" && i < rawMessages.length) {
-        rawMsg = rawMessages[i] || templateText;
+        rawMsg = (rawMessages[i] || templateText).trim();
       }
       // Apply {ColumnName} substitution if template has placeholders
       if (usesPlaceholders && sheetData && i < sheetData.rows.length) {
@@ -897,19 +897,11 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function showSendResult(sent: number, failed: number, skipped: number, pointsUsed: number): void {
+function showSendResult(sent: number, _failed: number, _skipped: number, pointsUsed: number): void {
   sendError.style.display = "none";
   sendError.textContent = "";
 
-  // Build summary text safely using textContent only
-  const parts: string[] = [
-    formatString(getString("resultSent"), { count: sent }),
-    formatString(getString("resultFailed"), { count: failed }),
-    formatString(getString("resultSkipped"), { count: skipped }),
-    formatString(getString("resultPointsUsed"), { count: pointsUsed }),
-  ];
-
-  sendResult.textContent = parts.join("  |  ");
+  sendResult.textContent = formatString(getString("resultSent"), { count: sent }) + "  |  " + formatString(getString("resultPointsUsed"), { count: pointsUsed });
   sendResult.style.display = "";
 }
 
