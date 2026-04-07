@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.0.3";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -453,9 +453,20 @@ async function handlePreviewUpdate(): Promise<void> {
       normalizedPhones.push(normalized);
     }
 
-    const deduped = deduplicate(normalizedPhones);
-    const validCount = deduped.unique.length;
-    const dupCount = deduped.removed.length;
+    // Only deduplicate when using template (same message for all).
+    // When using a message column, same phone with different messages should send separately.
+    const useMessageColumn = messageColumnSelect.value !== "";
+    let validCount: number;
+    let dupCount: number;
+
+    if (useMessageColumn) {
+      validCount = normalizedPhones.length;
+      dupCount = 0;
+    } else {
+      const deduped = deduplicate(normalizedPhones);
+      validCount = deduped.unique.length;
+      dupCount = deduped.removed.length;
+    }
 
     previewValid.textContent = String(validCount);
     previewDuplicates.textContent = String(dupCount);
@@ -569,19 +580,29 @@ async function handleSend(): Promise<void> {
       validMessages.push(msg);
     }
 
-    // 3. Deduplication (keeping first occurrence)
-    const seen = new Set<string>();
+    // 3. Deduplication: only when using template (same message for all).
+    //    When using message column, same phone with different messages sends separately.
+    const useMessageColumn = messageColumnSelect.value !== "";
     const deduped: Array<{ phone: string; message: string }> = [];
 
-    for (let i = 0; i < validPhones.length; i++) {
-      const phone = validPhones[i];
-      if (seen.has(phone)) {
-        logEntries.push(
-          makeLogEntry(timestamp, phone, validMessages[i], senderId, "SKIPPED_DUPLICATE", "Duplicate number", "", 0)
-        );
-      } else {
-        seen.add(phone);
-        deduped.push({ phone, message: validMessages[i] });
+    if (useMessageColumn) {
+      // No dedup: each row is a unique phone+message pair
+      for (let i = 0; i < validPhones.length; i++) {
+        deduped.push({ phone: validPhones[i], message: validMessages[i] });
+      }
+    } else {
+      // Dedup by phone number (same template message for all)
+      const seen = new Set<string>();
+      for (let i = 0; i < validPhones.length; i++) {
+        const phone = validPhones[i];
+        if (seen.has(phone)) {
+          logEntries.push(
+            makeLogEntry(timestamp, phone, validMessages[i], senderId, "SKIPPED_DUPLICATE", "Duplicate number", "", 0)
+          );
+        } else {
+          seen.add(phone);
+          deduped.push({ phone, message: validMessages[i] });
+        }
       }
     }
 

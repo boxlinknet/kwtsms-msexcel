@@ -42,16 +42,18 @@
     <!-- Main Section (hidden by default) -->
     <section id="main-section" style="display:none;">
 
-        <!-- Logo + logout -->
-        <div class="main-header">
+        <!-- Logo -->
+        <div class="main-logo">
             <img src="../../assets/kwtsms-logo.png" alt="kwtSMS" style="max-width: 150px; height: auto;" />
-            <button id="logout-btn" class="btn btn-ghost btn-sm">Logout</button>
         </div>
 
-        <!-- Balance -->
+        <!-- Balance + logout -->
         <div class="balance-bar">
-            <span class="balance-label">Balance:</span>
-            <span id="balance-value" class="balance-value">--</span>
+            <div class="balance-left">
+                <span class="balance-label">Balance:</span>
+                <span id="balance-value" class="balance-value">--</span>
+            </div>
+            <button id="logout-btn" class="btn btn-ghost btn-sm">Logout</button>
         </div>
 
         <div class="divider"></div>
