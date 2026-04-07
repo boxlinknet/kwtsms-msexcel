@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.8";
+const APP_VERSION = "1.0.9";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -668,6 +668,7 @@ async function handleSend(): Promise<void> {
 
     const validPhones: string[] = [];
     const validMessages: string[] = [];
+    const rawMsgList: string[] = [];
 
     for (let i = 0; i < rawPhones.length; i++) {
       const raw = rawPhones[i];
@@ -716,31 +717,30 @@ async function handleSend(): Promise<void> {
       }
 
       validPhones.push(normalized);
-      validMessages.push(msg);
+      validMessages.push(msg);       // cleaned message (sent to API)
+      rawMsgList.push(rawMsg);        // original message (for logging)
     }
 
     // 3. Deduplication: only when using template (same message for all).
     //    When using message column, same phone with different messages sends separately.
     const useMessageColumn = messageColumnSelect.value !== "";
-    const deduped: Array<{ phone: string; message: string }> = [];
+    const deduped: Array<{ phone: string; message: string; rawMessage: string }> = [];
 
     if (useMessageColumn) {
-      // No dedup: each row is a unique phone+message pair
       for (let i = 0; i < validPhones.length; i++) {
-        deduped.push({ phone: validPhones[i], message: validMessages[i] });
+        deduped.push({ phone: validPhones[i], message: validMessages[i], rawMessage: rawMsgList[i] });
       }
     } else {
-      // Dedup by phone number (same template message for all)
       const seen = new Set<string>();
       for (let i = 0; i < validPhones.length; i++) {
         const phone = validPhones[i];
         if (seen.has(phone)) {
           logEntries.push(
-            makeLogEntry(timestamp, phone, validMessages[i], senderId, "SKIPPED_DUPLICATE", "Duplicate number", "", 0)
+            makeLogEntry(timestamp, phone, rawMsgList[i], senderId, "SKIPPED_DUPLICATE", "Duplicate number", "", 0)
           );
         } else {
           seen.add(phone);
-          deduped.push({ phone, message: validMessages[i] });
+          deduped.push({ phone, message: validMessages[i], rawMessage: rawMsgList[i] });
         }
       }
     }
@@ -781,48 +781,38 @@ async function handleSend(): Promise<void> {
     for (let batchStart = 0; batchStart < deduped.length; batchStart += BATCH_SIZE) {
       const batchItems = deduped.slice(batchStart, batchStart + BATCH_SIZE);
 
-      // Group by message so same-message numbers can be sent in one API call
-      const messageGroups = groupByMessage(batchItems);
-
-      for (const message of Object.keys(messageGroups)) {
-        const phones = messageGroups[message];
-        const mobileParam = phones.join(",");
-
+      // Send each item individually to preserve per-row message in logs
+      for (const item of batchItems) {
         try {
           const resp: SendResponse = await api.send(
             creds.username,
             creds.password,
             senderId,
-            mobileParam,
-            message,
+            item.phone,
+            item.message,
             testMode
           );
 
-          const pointsPerPhone = phones.length > 0 ? Math.round(resp["points-charged"] / phones.length) : 0;
+          logEntries.push(
+            makeLogEntry(timestamp, item.phone, item.rawMessage, senderId, "SENT", "", resp["msg-id"], resp["points-charged"])
+          );
 
-          phones.forEach((phone) => {
-            logEntries.push(
-              makeLogEntry(timestamp, phone, message, senderId, "SENT", "", resp["msg-id"], pointsPerPhone)
-            );
-          });
-
-          sentCount += phones.length;
+          sentCount += 1;
           totalPointsCharged += resp["points-charged"];
 
-          // Update balance after each batch call
           const balanceAfter = resp["balance-after"];
           await settings.updateBalance(balanceAfter);
           updateBalanceDisplay(balanceAfter);
         } catch (err: any) {
           const errMsg = err.message || "Send failed";
-          phones.forEach((phone) => {
-            logEntries.push(makeLogEntry(timestamp, phone, message, senderId, "FAILED", errMsg, "", 0));
-          });
-          failedCount += phones.length;
+          logEntries.push(
+            makeLogEntry(timestamp, item.phone, item.rawMessage, senderId, "FAILED", errMsg, "", 0)
+          );
+          failedCount += 1;
         }
 
         // Update progress bar
-        processedCount += phones.length;
+        processedCount += 1;
         const pct = Math.round((processedCount / totalToSend) * 100);
         progressBarFill.style.width = pct + "%";
         progressCount.textContent = processedCount + " / " + totalToSend;
