@@ -32,6 +32,7 @@ let loginError: HTMLElement;
 
 // Main
 let balanceValue: HTMLElement;
+let refreshAccountBtn: HTMLButtonElement;
 let logoutBtn: HTMLButtonElement;
 let senderIdSelect: HTMLSelectElement;
 let testModeToggle: HTMLInputElement;
@@ -73,6 +74,7 @@ Office.onReady((info) => {
   loginError = document.getElementById("login-error") as HTMLElement;
 
   balanceValue = document.getElementById("balance-value") as HTMLElement;
+  refreshAccountBtn = document.getElementById("refresh-account-btn") as HTMLButtonElement;
   logoutBtn = document.getElementById("logout-btn") as HTMLButtonElement;
   senderIdSelect = document.getElementById("sender-id-select") as HTMLSelectElement;
   testModeToggle = document.getElementById("test-mode-toggle") as HTMLInputElement;
@@ -103,6 +105,7 @@ Office.onReady((info) => {
     e.preventDefault();
     handleLogin();
   });
+  refreshAccountBtn.addEventListener("click", handleRefreshAccount);
   logoutBtn.addEventListener("click", handleLogout);
   refreshColumnsBtn.addEventListener("click", () => populateColumnDropdowns());
   phoneColumnSelect.addEventListener("change", handlePreviewUpdate);
@@ -275,6 +278,33 @@ async function handleLogout(): Promise<void> {
   sendError.style.display = "none";
 
   showLoginSection();
+}
+
+async function handleRefreshAccount(): Promise<void> {
+  const creds = settings.getCredentials();
+  if (!creds) return;
+
+  refreshAccountBtn.disabled = true;
+  refreshAccountBtn.textContent = "...";
+
+  try {
+    const [balanceResp, senderIds, coverage] = await Promise.all([
+      api.login(creds.username, creds.password),
+      api.fetchSenderIds(creds.username, creds.password),
+      api.fetchCoverage(creds.username, creds.password),
+    ]);
+
+    await settings.saveCachedData(balanceResp.available, senderIds, coverage);
+    populateSenderIds(senderIds);
+    populateCountryCodes(coverage);
+    updateBalanceDisplay(balanceResp.available);
+    restoreSettingsToUI();
+  } catch (err: any) {
+    console.error("Refresh account error:", err);
+  } finally {
+    refreshAccountBtn.disabled = false;
+    refreshAccountBtn.textContent = "\u21BB";
+  }
 }
 
 // ---------------------------------------------------------------------------
