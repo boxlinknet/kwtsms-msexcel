@@ -66,6 +66,12 @@ body {
     gap: 6px;
 }
 
+.balance-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .balance-label {
     font-size: 12px;
     color: #888;
