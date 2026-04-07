@@ -1,6 +1,7 @@
 // src/services/kwtsms-api.ts
-// Direct client-side API client for kwtSMS gateway.
-// All calls use JSON POST to https://www.kwtsms.com/API/
+// Client-side API client for kwtSMS gateway.
+// In dev: calls go through webpack proxy (/API -> kwtsms.com) to avoid CORS.
+// In prod: calls go directly to kwtsms.com (production host must proxy or have CORS).
 // Credentials passed in body, never logged.
 // Related: src/models/types.ts, kwtsms-api-documentation skill
 
@@ -13,7 +14,7 @@ import {
   ApiErrorResponse,
 } from "../models/types";
 
-const BASE_URL = "https://www.kwtsms.com/API";
+const BASE_URL = "/API";
 
 async function apiCall<T>(endpoint: string, body: Record<string, any>): Promise<T> {
   const response = await fetch(BASE_URL + endpoint, {

@@ -37,9 +37,9 @@ export interface LocaleStrings {
 }
 
 const en: LocaleStrings = {
-  loginTitle: "Login to kwtSMS",
-  usernamePlaceholder: "Username",
-  passwordPlaceholder: "Password",
+  loginTitle: "Login to kwtSMS API",
+  usernamePlaceholder: "API Username",
+  passwordPlaceholder: "API Password",
   loginButton: "Login",
   loginError: "Invalid credentials or service unavailable",
   loggingIn: "Logging in...",
