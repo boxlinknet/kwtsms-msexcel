@@ -112,15 +112,23 @@
         <!-- Send preview -->
         <div id="send-preview" class="preview-box" style="display:none;">
             <div class="preview-row">
+                <span class="preview-label">Total rows:</span>
+                <span id="preview-total" class="preview-value">0</span>
+            </div>
+            <div class="preview-row">
                 <span class="preview-label">Valid:</span>
                 <span id="preview-valid" class="preview-value preview-valid">0</span>
+            </div>
+            <div class="preview-row">
+                <span class="preview-label">Invalid:</span>
+                <span id="preview-invalid" class="preview-value preview-warn">0</span>
             </div>
             <div class="preview-row">
                 <span class="preview-label">Duplicates:</span>
                 <span id="preview-duplicates" class="preview-value preview-warn">0</span>
             </div>
             <div class="preview-row">
-                <span class="preview-label">Skipped:</span>
+                <span class="preview-label">No coverage:</span>
                 <span id="preview-skipped" class="preview-value preview-warn">0</span>
             </div>
             <div class="preview-row">

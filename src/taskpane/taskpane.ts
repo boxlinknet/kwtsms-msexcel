@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.9";
+const APP_VERSION = "1.0.10";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -44,6 +44,8 @@ let sendPreview: HTMLElement;
 let previewValid: HTMLElement;
 let previewDuplicates: HTMLElement;
 let previewSkipped: HTMLElement;
+let previewTotal: HTMLElement;
+let previewInvalid: HTMLElement;
 let previewEmptyMsgs: HTMLElement;
 let sendBtn: HTMLButtonElement;
 let sendProgress: HTMLElement;
@@ -83,6 +85,8 @@ Office.onReady((info) => {
   previewValid = document.getElementById("preview-valid") as HTMLElement;
   previewDuplicates = document.getElementById("preview-duplicates") as HTMLElement;
   previewSkipped = document.getElementById("preview-skipped") as HTMLElement;
+  previewTotal = document.getElementById("preview-total") as HTMLElement;
+  previewInvalid = document.getElementById("preview-invalid") as HTMLElement;
   previewEmptyMsgs = document.getElementById("preview-empty-msgs") as HTMLElement;
   sendBtn = document.getElementById("send-btn") as HTMLButtonElement;
   sendProgress = document.getElementById("send-progress") as HTMLElement;
@@ -102,7 +106,15 @@ Office.onReady((info) => {
   logoutBtn.addEventListener("click", handleLogout);
   refreshColumnsBtn.addEventListener("click", () => populateColumnDropdowns());
   phoneColumnSelect.addEventListener("change", handlePreviewUpdate);
-  messageColumnSelect.addEventListener("change", handlePreviewUpdate);
+  messageColumnSelect.addEventListener("change", () => {
+    const hasMessageCol = messageColumnSelect.value !== "";
+    messageTemplate.disabled = hasMessageCol;
+    messageTemplate.style.opacity = hasMessageCol ? "0.5" : "1";
+    messageTemplate.placeholder = hasMessageCol
+      ? "Disabled: using Message Column"
+      : "Hello {Name}, your order #{OrderID} is ready for pickup at {Address}. Use {ColumnName} or {A} for column substitution.";
+    handlePreviewUpdate();
+  });
   countryCodeSelect.addEventListener("change", handlePreviewUpdate);
   messageTemplate.addEventListener("input", handlePreviewUpdate);
   sendBtn.addEventListener("click", handleSend);
@@ -547,17 +559,19 @@ async function handlePreviewUpdate(): Promise<void> {
       sheetData = await readSheetData();
     }
 
+    let invalidCount = 0;
     let skippedCount = 0;
     let emptyMsgCount = 0;
     const normalizedPhones: string[] = [];
+    const totalRows = rawPhones.length;
 
     for (let i = 0; i < rawPhones.length; i++) {
       const raw = rawPhones[i];
-      if (!raw) continue;
+      if (!raw) { invalidCount++; continue; }
       const normalized = normalize(raw, defaultCountry);
-      if (!normalized) continue;
+      if (!normalized) { invalidCount++; continue; }
       const result = verify(normalized);
-      if (!result.valid) continue;
+      if (!result.valid) { invalidCount++; continue; }
       if (!hasCountryCoverage(normalized, coverage)) {
         skippedCount++;
         continue;
@@ -595,7 +609,9 @@ async function handlePreviewUpdate(): Promise<void> {
       dupCount = deduped.removed.length;
     }
 
+    previewTotal.textContent = String(totalRows);
     previewValid.textContent = String(validCount);
+    previewInvalid.textContent = String(invalidCount);
     previewDuplicates.textContent = String(dupCount);
     previewSkipped.textContent = String(skippedCount);
     previewEmptyMsgs.textContent = String(emptyMsgCount);
