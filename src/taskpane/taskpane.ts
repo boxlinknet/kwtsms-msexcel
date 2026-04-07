@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.5";
+const APP_VERSION = "1.0.6";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -538,10 +538,16 @@ async function handleSend(): Promise<void> {
       const raw = rawPhones[i];
       if (!raw) continue;
 
+      // Get the raw message for this row (for logging even on failure)
+      let rawMsg = templateText;
+      if (messageColIndex !== "" && i < rawMessages.length) {
+        rawMsg = rawMessages[i] || templateText;
+      }
+
       const normalized = normalize(raw, defaultCountry);
       if (!normalized) {
         logEntries.push(
-          makeLogEntry(timestamp, raw, "", senderId, "FAILED", "Invalid phone number", "", 0)
+          makeLogEntry(timestamp, raw, rawMsg, senderId, "FAILED", "Invalid phone number", "", 0)
         );
         continue;
       }
@@ -549,29 +555,23 @@ async function handleSend(): Promise<void> {
       const verifyResult = verify(normalized);
       if (!verifyResult.valid) {
         logEntries.push(
-          makeLogEntry(timestamp, normalized, "", senderId, "FAILED", "Failed phone validation", "", 0)
+          makeLogEntry(timestamp, normalized, rawMsg, senderId, "FAILED", "Failed phone validation", "", 0)
         );
         continue;
       }
 
       if (!hasCountryCoverage(normalized, coverage)) {
         logEntries.push(
-          makeLogEntry(timestamp, normalized, "", senderId, "SKIPPED_NO_COVERAGE", "No coverage for this country", "", 0)
+          makeLogEntry(timestamp, normalized, rawMsg, senderId, "SKIPPED_NO_COVERAGE", "No coverage for this country", "", 0)
         );
         continue;
       }
 
-      // Determine message for this row
-      let msg = templateText;
-      if (messageColIndex !== "" && i < rawMessages.length) {
-        msg = rawMessages[i] || templateText;
-      }
-
-      msg = cleanMessage(msg);
+      const msg = cleanMessage(rawMsg);
 
       if (!msg) {
         logEntries.push(
-          makeLogEntry(timestamp, normalized, "", senderId, "FAILED", getString("emptyMessage"), "", 0)
+          makeLogEntry(timestamp, normalized, rawMsg, senderId, "FAILED", getString("emptyMessage"), "", 0)
         );
         continue;
       }
