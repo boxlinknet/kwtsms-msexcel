@@ -141,12 +141,20 @@ export function normalize(phone: string, defaultCountryCode: string): string {
 
   if (!cleaned) return "";
 
+  // Check if number already has a valid country prefix AND the total length
+  // matches that country's expected format. Only then treat it as international.
   const prefix = findCountryPrefix(cleaned);
-  if (!prefix) {
-    cleaned = defaultCountryCode + cleaned;
+  if (prefix) {
+    const rule = COUNTRY_RULES[prefix];
+    const localPart = cleaned.substring(prefix.length);
+    if (rule.localLengths.includes(localPart.length)) {
+      // Valid international format, use as-is
+      return cleaned;
+    }
   }
 
-  return cleaned;
+  // Otherwise treat as local number: prepend default country code
+  return defaultCountryCode + cleaned;
 }
 
 export interface VerifyResult {
