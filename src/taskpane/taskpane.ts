@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.15";
+const APP_VERSION = "1.0.16";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -134,8 +134,11 @@ Office.onReady((info) => {
     settings.setDefaultCountryCode(countryCodeSelect.value);
   });
 
-  // Set version
-  versionDisplay.textContent = formatString(getString("version"), { version: APP_VERSION });
+  // Set version on both login and main footers
+  const versionText = formatString(getString("version"), { version: APP_VERSION });
+  versionDisplay.textContent = versionText;
+  const loginVersionDisplay = document.getElementById("login-version-display");
+  if (loginVersionDisplay) loginVersionDisplay.textContent = versionText;
 
   // Check for saved credentials to restore session
   const creds = settings.getCredentials();
