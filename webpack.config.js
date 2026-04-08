@@ -5,7 +5,6 @@ const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-const urlDev = "https://localhost:3000/";
 const urlProd = "https://boxlinknet.github.io/kwtsms-msexcel/";
 
 async function getHttpsOptions() {
@@ -75,13 +74,6 @@ module.exports = async (env, options) => {
           {
             from: "manifest*.xml",
             to: "[name]" + "[ext]",
-            transform(content) {
-              if (dev) {
-                return content;
-              } else {
-                return content.toString().replace(new RegExp(urlDev, "g"), urlProd);
-              }
-            },
           },
           {
             from: "support.html",
