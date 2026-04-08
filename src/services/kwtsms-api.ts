@@ -1,7 +1,6 @@
 // src/services/kwtsms-api.ts
 // Client-side API client for kwtSMS gateway.
-// In dev: calls go through webpack proxy (/API -> kwtsms.com) to avoid CORS.
-// In prod: calls go directly to kwtsms.com (production host must proxy or have CORS).
+// Calls kwtsms.com directly (CORS enabled on API server).
 // Credentials passed in body, never logged.
 // Related: src/models/types.ts, kwtsms-api-documentation skill
 
@@ -14,9 +13,7 @@ import {
   ApiErrorResponse,
 } from "../models/types";
 
-// In dev: use proxy (/API -> kwtsms.com). In prod: call kwtsms.com directly (CORS enabled).
-const IS_DEV = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-const BASE_URL = IS_DEV ? "/API" : "https://www.kwtsms.com/API";
+const BASE_URL = "https://www.kwtsms.com/API";
 
 async function apiCall<T>(endpoint: string, body: Record<string, any>): Promise<T> {
   const response = await fetch(BASE_URL + endpoint, {
