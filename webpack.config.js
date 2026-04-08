@@ -6,7 +6,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const urlDev = "https://localhost:3000/";
-const urlProd = "https://www.contoso.com/"; // CHANGE THIS TO YOUR PRODUCTION DEPLOYMENT LOCATION
+const urlProd = "https://boxlinknet.github.io/kwtsms-msexcel/";
 
 async function getHttpsOptions() {
   const certsDir = path.join(require("os").homedir(), ".office-addin-dev-certs");
@@ -100,9 +100,18 @@ module.exports = async (env, options) => {
       }),
     ],
     devServer: {
+      allowedHosts: "all",
       headers: {
         "Access-Control-Allow-Origin": "*",
       },
+      proxy: [
+        {
+          context: ["/API"],
+          target: "https://www.kwtsms.com",
+          changeOrigin: true,
+          secure: true,
+        },
+      ],
       server: {
         type: "https",
         options: env.WEBPACK_BUILD || options.https !== undefined ? options.https : await getHttpsOptions(),
