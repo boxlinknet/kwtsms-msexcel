@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.14";
+const APP_VERSION = "1.0.15";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 
@@ -303,7 +303,7 @@ async function handleRefreshAccount(): Promise<void> {
     console.error("Refresh account error:", err);
   } finally {
     refreshAccountBtn.disabled = false;
-    refreshAccountBtn.textContent = "\u21BB";
+    refreshAccountBtn.textContent = "Reload";
   }
 }
 
