@@ -13,7 +13,7 @@ import { ensureLogSheet, logBatch } from "../services/logger";
 import { getString, formatString } from "../localization/strings";
 import { LogEntry, SendStatus, SendResponse } from "../models/types";
 
-const APP_VERSION = "1.0.18";
+const APP_VERSION = "1.0.19";
 const BATCH_SIZE = 200;
 const BATCH_DELAY_MS = 200;
 

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
   <Id>0f40b35b-c32f-4ff5-8d5a-a9fb0fbe6bc5</Id>
-  <Version>1.0.18.0</Version>
+  <Version>1.0.19.0</Version>
   <ProviderName>kwtSMS</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="kwtSMS"/>
   <Description DefaultValue="Send bulk SMS directly from your Excel spreadsheets using the kwtSMS gateway. Map phone number and message columns, validate numbers for 80+ countries, and track delivery in a dedicated log sheet."/>
   <IconUrl DefaultValue="https://boxlinknet.github.io/kwtsms-msexcel/assets/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://boxlinknet.github.io/kwtsms-msexcel/assets/icon-64.png"/>
-  <SupportUrl DefaultValue="https://boxlinknet.github.io/kwtsms-msexcel/support.html"/>
+  <SupportUrl DefaultValue="https://www.kwtsms.com/support.html"/>
   <AppDomains>
     <AppDomain>https://www.kwtsms.com</AppDomain>
   </AppDomains>
